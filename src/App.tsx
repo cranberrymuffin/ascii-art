@@ -1,16 +1,16 @@
 import React, { useState, ChangeEvent } from 'react';
 import { removeBackground } from '@imgly/background-removal';
+import './style.css'; // Import the styles
 
 const App = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [asciiArt, setAsciiArt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
+  const [isAsciiVisible, setIsAsciiVisible] = useState<boolean>(false);
 
-  // ASCII characters from dark to light
   const asciiChars: string[] = ['@', '#', '8', '&', 'o', ':', '*', '.', ' '];
 
-  // Convert image to grayscale and then to ASCII art
   const convertToAscii = (
     image: HTMLImageElement,
     width: number,
@@ -32,9 +32,8 @@ const App = () => {
       const r = pixels[i];
       const g = pixels[i + 1];
       const b = pixels[i + 2];
-      const a = pixels[i + 3]; // Alpha channel
+      const a = pixels[i + 3];
 
-      // Treat transparent pixels as white
       if (a < 128) {
         asciiStr += ' ';
       } else {
@@ -50,10 +49,9 @@ const App = () => {
       }
     }
 
-    return asciiStr.trimEnd();
+    return asciiStr.replace(/^(?:\s*\n)+/, '').trimEnd();
   };
 
-  // Function to process image (either URL or file)
   const processImage = async (imageSource: Blob | string) => {
     setIsLoading(true);
 
@@ -61,7 +59,6 @@ const App = () => {
       let imageUrl;
       let imageBlob: Blob | null = null;
 
-      // Fetch image from URL or use the file blob
       if (typeof imageSource === 'string') {
         const response = await fetch(imageSource);
         if (!response.ok) {
@@ -74,7 +71,6 @@ const App = () => {
         imageBlob = imageSource;
       }
 
-      // Remove background
       const removedBlob = await removeBackground(imageBlob);
       if (!removedBlob) {
         console.error('No background removed, returned blob is empty.');
@@ -87,9 +83,10 @@ const App = () => {
 
       const image = new Image();
       image.onload = () => {
-        const ascii = convertToAscii(image, 100, 100); // Adjust width and height as needed
+        const ascii = convertToAscii(image, 100, 100);
         setAsciiArt(ascii);
         setIsLoading(false);
+        setIsAsciiVisible(true);
       };
       image.src = url;
     } catch (error) {
@@ -115,29 +112,48 @@ const App = () => {
     }
   };
 
+  const handleBackToInput = () => {
+    setIsAsciiVisible(false);
+    setAsciiArt(null);
+    setImageUrlInput('');
+  };
+
   return (
-    <div>
-      {isLoading ? (
-        <p>Loading...</p>
+    <div className="app-container">
+      {isAsciiVisible ? (
+        <div className="ascii-art-container">
+          <pre>{asciiArt}</pre>
+          <button className="go-back-btn" onClick={handleBackToInput}>
+            Go Back
+          </button>
+        </div>
       ) : (
-        asciiArt && (
-          <pre>
-            <code>{asciiArt}</code>
-          </pre>
-        )
+        <div className="input-container">
+          {isLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <>
+              <input
+                type="text"
+                value={imageUrlInput}
+                onChange={handleUrlChange}
+                placeholder="Enter image URL"
+                className="input-field"
+              />
+              <button className="process-btn" onClick={handleUrlSubmit}>
+                Process Image from URL
+              </button>
+              <br />
+              <input
+                type="file"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="file-input"
+              />
+            </>
+          )}
+        </div>
       )}
-
-      {/* URL input for image */}
-      <input
-        type="text"
-        value={imageUrlInput}
-        onChange={handleUrlChange}
-        placeholder="Enter image URL"
-      />
-      <button onClick={handleUrlSubmit}>Process Image from URL</button>
-
-      {/* File input for local image */}
-      <input type="file" onChange={handleFileChange} accept="image/*" />
     </div>
   );
 };
