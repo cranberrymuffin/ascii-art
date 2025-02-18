@@ -50,7 +50,7 @@ const App = () => {
       }
     }
 
-    return asciiStr.trim();
+    return asciiStr.trimEnd();
   };
 
   // Function to process image (either URL or file)
