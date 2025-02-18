@@ -53,54 +53,37 @@ const App = () => {
     return asciiStr.trim();
   };
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setImageUrl(imageUrl);
-      setIsLoading(true);
-
-      try {
-        const removedBlob = await removeBackground(file);
-        if (removedBlob) {
-          const url = URL.createObjectURL(removedBlob);
-          setImageUrl(url);
-
-          const image = new Image();
-          image.onload = () => {
-            const ascii = convertToAscii(image, 100, 100); // Adjust width and height as needed
-            setAsciiArt(ascii);
-            setIsLoading(false);
-          };
-          image.src = url;
-        } else {
-          console.error('No background removed, returned blob is empty.');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error removing background:', error);
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setImageUrlInput(event.target.value);
-  };
-
-  const handleUrlSubmit = async () => {
-    if (!imageUrlInput) return;
-
+  // Function to process image (either URL or file)
+  const processImage = async (imageSource: Blob | string) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(imageUrlInput);
-      if (!response.ok) {
-        throw new Error('Failed to fetch image');
+      let imageUrl;
+      let imageBlob: Blob | null = null;
+
+      // Fetch image from URL or use the file blob
+      if (typeof imageSource === 'string') {
+        const response = await fetch(imageSource);
+        if (!response.ok) {
+          throw new Error('Failed to fetch image');
+        }
+        imageBlob = await response.blob();
+        imageUrl = URL.createObjectURL(imageBlob);
+      } else {
+        imageUrl = URL.createObjectURL(imageSource);
+        imageBlob = imageSource;
       }
-      const blob = await response.blob();
-      const imageUrl = URL.createObjectURL(blob);
-      setImageUrl(imageUrl);
+
+      // Remove background
+      const removedBlob = await removeBackground(imageBlob);
+      if (!removedBlob) {
+        console.error('No background removed, returned blob is empty.');
+        setIsLoading(false);
+        return;
+      }
+
+      const url = URL.createObjectURL(removedBlob);
+      setImageUrl(url);
 
       const image = new Image();
       image.onload = () => {
@@ -108,10 +91,27 @@ const App = () => {
         setAsciiArt(ascii);
         setIsLoading(false);
       };
-      image.src = imageUrl;
+      image.src = url;
     } catch (error) {
-      console.error('Error fetching image:', error);
+      console.error('Error processing image:', error);
       setIsLoading(false);
+    }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    if (file) {
+      processImage(file);
+    }
+  };
+
+  const handleUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setImageUrlInput(event.target.value);
+  };
+
+  const handleUrlSubmit = () => {
+    if (imageUrlInput) {
+      processImage(imageUrlInput);
     }
   };
 
