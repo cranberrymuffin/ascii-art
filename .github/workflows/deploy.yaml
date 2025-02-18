@@ -14,11 +14,18 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Setup Node
+      - name: Set up Node
         uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Or the version you're using
+
+      - name: Clean node_modules and package-lock
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: npm install
 
       - name: Build project
         run: npm run build
