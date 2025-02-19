@@ -41,10 +41,13 @@ const App = () => {
   useEffect(() => {
     fitText();
     // Re-run fitting when text changes
+  }, [asciiArt]);
+
+  useEffect(() => {
     if (preRef.current) {
       preRef.current.style.fontSize = `${fontSize}px`;
     }
-  }, [asciiArt, fontSize]);
+  }, [fontSize]);
 
   const asciiChars: string[] = ['@', '#', '8', '&', 'o', ':', '*', '.', ' '];
 
@@ -197,13 +200,18 @@ const App = () => {
                   Process Image from URL
                 </button>
               </div>
-              <br />
-              <input
-                type="file"
-                onChange={handleFileChange}
-                accept="image/*"
-                className="file-input"
-              />
+              <div>
+                <input
+                  type="file"
+                  id="file-input"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="file-input"
+                />
+                <label htmlFor="file-input" className="file-input-label">
+                  Choose File
+                </label>
+              </div>
             </>
           )}
         </div>

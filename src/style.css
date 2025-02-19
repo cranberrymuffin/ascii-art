@@ -1,7 +1,7 @@
 /* Overall body background */
 body {
   background-color: #ffe6f2; /* soft pastel pink */
-  font-family: 'Arial', sans-serif;
+  font-family: 'Courier New', monospace;
   margin: 0;
 }
 
@@ -20,7 +20,7 @@ body {
   align-items: center;
   text-align: center;
   white-space: pre-wrap;
-  font-family: 'Monospace', sans-serif;
+  font-family: 'Courier New', monospace;
   font-size: 12px;
   color: hotpink;
   background-color: #fff0f6; /* pastel pink background */
@@ -66,10 +66,12 @@ body {
   gap: 10px;
   align-items: center;
   width: 100%;
+  margin-bottom: 10px;
 }
 
 /* Input field for URL */
 .input-field {
+  font-family: 'Courier New', monospace;
   box-sizing: border-box;
   flex: 1;
   padding: 10px;
@@ -80,6 +82,7 @@ body {
 
 /* Process button */
 .process-btn {
+  font-family: 'Courier New', monospace;
   padding: 10px 20px;
   background-color: #ff66b2;
   color: white;
@@ -93,10 +96,28 @@ body {
 .process-btn:hover {
   background-color: #ff4da6;
 }
-/* File input */
+
+/* Hide actual file input */
 .file-input {
-  margin-top: 10px;
-  padding: 10px;
-  border: 2px solid #ff99cc;
-  border-radius: 10px;
+  display: none;
+}
+
+/* Label styled as a button */
+.file-input-label {
+  display: inline-block;
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #ff66b2;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  box-sizing: border-box; /* Ensures the label does not overflow */
+}
+
+.file-input-label:hover {
+  background-color: #ff4da6;
 }
