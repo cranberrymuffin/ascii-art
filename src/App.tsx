@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import { removeBackground } from '@imgly/background-removal';
 import './style.css'; // Import the styles
 
@@ -8,73 +8,74 @@ const App = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
   const [isAsciiVisible, setIsAsciiVisible] = useState<boolean>(false);
-  const preRef = useRef<HTMLPreElement | null>(null);
-  const [fontSize, setFontSize] = useState(20);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  }>({
+    width: 0,
+    height: 0,
+  });
 
-  const fitText = () => {
-    if (!preRef.current) return;
+  const asciiChars: string[] = [
+    '@',
+    '%',
+    '#',
+    '8',
+    '&',
+    '$',
+    '*',
+    '+',
+    ';',
+    ':',
+    ',',
+    '.',
+    ' ', // Darker to lighter characters
+  ];
 
-    let size = 20; // Start with a reasonable size
-    preRef.current.style.fontSize = `${size}px`;
+  function getFontMetrics(): {
+    charWidth: number;
+    charHeight: number;
+  } {
+    const fontSize = 6; // Font size in pixels (adjustable)
 
-    while (
-      (preRef.current.scrollWidth > window.innerWidth ||
-        preRef.current.scrollHeight > window.innerHeight) &&
-      size > 0.1
-    ) {
-      size -= 0.1;
-      preRef.current.style.fontSize = `${size}px`;
-    }
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    context.font = `${fontSize}px 'Courier New', monospace`;
 
-    setFontSize(size);
+    const charWidth = context.measureText('@').width; // 'M' is a good sample character to measure width
+    const charHeight = fontSize; // Typically, height is the same as the font size for monospace fonts
+
+    return { charWidth, charHeight };
+  }
+
+  // Set the font size for ASCII characters
+  // Function to calculate width and height for image resizing based on ASCII grid
+  const calculateDimensions = (
+    image: HTMLImageElement,
+  ): { width: number; height: number } => {
+    const { charWidth, charHeight } = getFontMetrics();
+    const maxWidth = window.innerWidth * 0.8; // 80% of the viewport width
+    const maxHeight = window.innerHeight * 0.8; // 80% of the viewport height
+
+    // Calculate the number of columns (width) and rows (height) based on font size
+    const cols = Math.floor(maxWidth / charWidth);
+    const rows = Math.floor(maxHeight / charHeight);
+    console.log(rows, cols);
+
+    return { width: cols, height: rows };
   };
 
-  useEffect(() => {
-    // Attach event listener only once
-    window.addEventListener('resize', fitText);
-
-    return () => {
-      window.removeEventListener('resize', fitText); // Cleanup on unmount
-    };
-  }, []); // Empty dependency array ensures effect runs only once
-
-  useEffect(() => {
-    fitText();
-    // Re-run fitting when text changes
-  }, [asciiArt]);
-
-  useEffect(() => {
-    if (preRef.current) {
-      preRef.current.style.fontSize = `${fontSize}px`;
-    }
-  }, [fontSize]);
-
-  const asciiChars: string[] = ['@', '#', '8', '&', 'o', ':', '*', '.', ' '];
-
-  const convertToAscii = (image: HTMLImageElement): string => {
+  const convertToAscii = (
+    image: HTMLImageElement,
+    width: number,
+    height: number,
+  ): string => {
+    console.log(width);
+    console.log(height);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
 
-    // Determine max size based on window dimensions
-    const maxWidth = window.innerWidth;
-    const maxHeight = window.innerHeight;
-
-    // Maintain aspect ratio
-    let width = image.width;
-    let height = image.height;
-    const aspectRatio = width / height;
-
-    if (width > maxWidth) {
-      width = maxWidth;
-      height = Math.floor(width / aspectRatio);
-    }
-    if (height > maxHeight) {
-      height = maxHeight;
-      width = Math.floor(height * aspectRatio);
-    }
-
-    // Set new canvas size
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(image, 0, 0, width, height);
@@ -104,7 +105,7 @@ const App = () => {
       }
     }
 
-    return asciiStr.replace(/^(?:\s*\n)+/, '').trimEnd();
+    return asciiStr.replace(/^(?:\s*\n)+/, '');
   };
 
   const processImage = async (imageSource: Blob | string) => {
@@ -138,7 +139,25 @@ const App = () => {
 
       const image = new Image();
       image.onload = () => {
-        const ascii = convertToAscii(image);
+        // Step 1: Get max dimensions
+        const { width: maxWidth, height: maxHeight } =
+          calculateDimensions(image);
+
+        // Step 2: Calculate the aspect ratio of the image
+        const aspectRatio = image.naturalWidth / image.naturalHeight;
+
+        // Step 3: Scale image dimensions while maintaining aspect ratio
+        let width = maxWidth;
+        let height = Math.floor(width / aspectRatio);
+
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = Math.floor(height * aspectRatio);
+        }
+
+        // Step 4: Set the image dimensions and generate ASCII art
+        setImageDimensions({ width, height });
+        const ascii = convertToAscii(image, width, height);
         setAsciiArt(ascii);
         setIsLoading(false);
         setIsAsciiVisible(true);
@@ -177,7 +196,7 @@ const App = () => {
     <div className="app-container">
       {isAsciiVisible ? (
         <div className="ascii-art-container">
-          <pre ref={preRef}>{asciiArt}</pre>
+          <pre>{asciiArt}</pre>
           <button className="go-back-btn" onClick={handleBackToInput}>
             Go Back
           </button>
