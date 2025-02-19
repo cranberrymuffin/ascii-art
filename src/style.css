@@ -33,6 +33,7 @@ body {
 
 /* "Go Back" button */
 .go-back-btn {
+  font-family: 'Courier New', monospace;
   position: absolute;
   bottom: 20px;
   right: 20px;
