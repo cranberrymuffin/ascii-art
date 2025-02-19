@@ -1,3 +1,9 @@
+/* Overall body background */
+body {
+  background-color: #ffe6f2; /* soft pastel pink */
+  font-family: 'Arial', sans-serif;
+}
+
 /* Full-screen container for the app */
 .app-container {
   height: 100vh;
@@ -8,10 +14,17 @@
 
 /* Full-screen ASCII art display */
 .ascii-art-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   white-space: pre-wrap;
   font-family: 'Monospace', sans-serif;
   font-size: 12px;
   color: hotpink;
+  background-color: #fff0f6; /* pastel pink background */
+  border: 2px solid #ff99cc; /* soft pink border */
+  border-radius: 15px;
   padding: 20px;
   position: relative;
   width: 100%;
@@ -21,41 +34,69 @@
 /* "Go Back" button */
 .go-back-btn {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  bottom: 20px;
+  right: 20px;
   padding: 10px 20px;
-  background-color: #4caf50;
+  background-color: #ff66b2; /* kawaii pink */
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 15px;
   cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.go-back-btn:hover {
+  background-color: #ff4da6;
 }
 
 /* Input and file selection container */
 .input-container {
   text-align: center;
   max-width: 400px;
+  background-color: #fff0f6;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Group input field and button next to each other */
+.input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
 }
 
 /* Input field for URL */
 .input-field {
+  box-sizing: border-box;
+  flex: 1;
   padding: 10px;
-  margin-bottom: 10px;
-  width: 100%;
+  border: 2px solid #ff99cc;
+  border-radius: 10px;
+  outline: none;
 }
 
 /* Process button */
 .process-btn {
   padding: 10px 20px;
-  background-color: #4caf50;
+  background-color: #ff66b2;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 15px;
   cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
 }
 
+.process-btn:hover {
+  background-color: #ff4da6;
+}
 /* File input */
 .file-input {
   margin-top: 10px;
   padding: 10px;
+  border: 2px solid #ff99cc;
+  border-radius: 10px;
 }

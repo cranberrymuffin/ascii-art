@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { removeBackground } from '@imgly/background-removal';
 import './style.css'; // Import the styles
 
@@ -8,18 +8,70 @@ const App = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
   const [isAsciiVisible, setIsAsciiVisible] = useState<boolean>(false);
+  const preRef = useRef<HTMLPreElement | null>(null);
+  const [fontSize, setFontSize] = useState(20);
+
+  const fitText = () => {
+    if (!preRef.current) return;
+
+    let size = 20; // Start with a reasonable size
+    preRef.current.style.fontSize = `${size}px`;
+
+    while (
+      (preRef.current.scrollWidth > window.innerWidth ||
+        preRef.current.scrollHeight > window.innerHeight) &&
+      size > 0.1
+    ) {
+      size -= 0.1;
+      preRef.current.style.fontSize = `${size}px`;
+    }
+
+    setFontSize(size);
+  };
+
+  useEffect(() => {
+    // Attach event listener only once
+    window.addEventListener('resize', fitText);
+
+    return () => {
+      window.removeEventListener('resize', fitText); // Cleanup on unmount
+    };
+  }, []); // Empty dependency array ensures effect runs only once
+
+  useEffect(() => {
+    fitText();
+    // Re-run fitting when text changes
+    if (preRef.current) {
+      preRef.current.style.fontSize = `${fontSize}px`;
+    }
+  }, [asciiArt, fontSize]);
 
   const asciiChars: string[] = ['@', '#', '8', '&', 'o', ':', '*', '.', ' '];
 
-  const convertToAscii = (
-    image: HTMLImageElement,
-    width: number,
-    height: number,
-  ): string => {
+  const convertToAscii = (image: HTMLImageElement): string => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
 
+    // Determine max size based on window dimensions
+    const maxWidth = window.innerWidth;
+    const maxHeight = window.innerHeight;
+
+    // Maintain aspect ratio
+    let width = image.width;
+    let height = image.height;
+    const aspectRatio = width / height;
+
+    if (width > maxWidth) {
+      width = maxWidth;
+      height = Math.floor(width / aspectRatio);
+    }
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = Math.floor(height * aspectRatio);
+    }
+
+    // Set new canvas size
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(image, 0, 0, width, height);
@@ -83,7 +135,7 @@ const App = () => {
 
       const image = new Image();
       image.onload = () => {
-        const ascii = convertToAscii(image, 100, 100);
+        const ascii = convertToAscii(image);
         setAsciiArt(ascii);
         setIsLoading(false);
         setIsAsciiVisible(true);
@@ -122,7 +174,7 @@ const App = () => {
     <div className="app-container">
       {isAsciiVisible ? (
         <div className="ascii-art-container">
-          <pre>{asciiArt}</pre>
+          <pre ref={preRef}>{asciiArt}</pre>
           <button className="go-back-btn" onClick={handleBackToInput}>
             Go Back
           </button>
@@ -133,16 +185,18 @@ const App = () => {
             <p>Loading...</p>
           ) : (
             <>
-              <input
-                type="text"
-                value={imageUrlInput}
-                onChange={handleUrlChange}
-                placeholder="Enter image URL"
-                className="input-field"
-              />
-              <button className="process-btn" onClick={handleUrlSubmit}>
-                Process Image from URL
-              </button>
+              <div className="input-group">
+                <input
+                  type="text"
+                  value={imageUrlInput}
+                  onChange={handleUrlChange}
+                  placeholder="Enter image URL"
+                  className="input-field"
+                />
+                <button className="process-btn" onClick={handleUrlSubmit}>
+                  Process Image from URL
+                </button>
+              </div>
               <br />
               <input
                 type="file"
