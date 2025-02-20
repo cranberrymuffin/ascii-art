@@ -13,9 +13,7 @@ export const getFontMetrics = (): { charWidth: number; charHeight: number } => {
   return { charWidth, charHeight };
 };
 
-export const calculateDimensions = (
-  image: HTMLImageElement,
-): { width: number; height: number } => {
+export const calculateDimensions = (): { width: number; height: number } => {
   const { charWidth, charHeight } = getFontMetrics();
   const maxWidth = window.innerWidth; // 80% of the viewport width
   const maxHeight = window.innerHeight; // 80% of the viewport height
@@ -113,7 +111,7 @@ export const processImage = async (
 
     const image = new Image();
     image.onload = () => {
-      const { width: maxWidth, height: maxHeight } = calculateDimensions(image);
+      const { width: maxWidth, height: maxHeight } = calculateDimensions();
 
       const aspectRatio = image.naturalWidth / image.naturalHeight;
 
