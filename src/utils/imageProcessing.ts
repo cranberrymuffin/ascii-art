@@ -83,8 +83,6 @@ const convertToAscii = (
 
   const imgData = ctx.getImageData(0, 0, width, height);
   const pixels = imgData.data;
-  console.log(pixels.length);
-  console.log(4 * width * height);
 
   let asciiStr = '';
 
