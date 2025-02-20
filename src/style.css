@@ -122,10 +122,11 @@ body {
 
 pre {
   font-family: 'Courier New', monospace;
-  line-height: 4px;
-  font-size: 6px;
+  line-height: 5px;
+  font-size: 8px;
   margin: 0px;
   width: 100%;
   height: 100%;
   letter-spacing: 0px;
+  text-shadow: 1px 1px 2px hotpink;
 }

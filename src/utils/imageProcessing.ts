@@ -1,6 +1,6 @@
 import { removeBackground } from '@imgly/background-removal';
 
-const FONT_SIZE = 4; // Font size in pixels
+const FONT_SIZE = 6; // Font size in pixels
 
 const calculateDimensions = (): { width: number; height: number } => {
   const charWidth = FONT_SIZE;
