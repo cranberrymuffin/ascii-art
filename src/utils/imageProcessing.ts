@@ -2,21 +2,12 @@ import { removeBackground } from '@imgly/background-removal';
 
 const FONT_SIZE = 4; // Font size in pixels
 
-const getFontMetrics = (): { charWidth: number; charHeight: number } => {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d')!;
-  context.font = `${FONT_SIZE}px 'Courier New', monospace`;
-
-  return {
-    charWidth: context.measureText('@').width,
-    charHeight: FONT_SIZE,
-  };
-};
-
 const calculateDimensions = (): { width: number; height: number } => {
-  const { charWidth, charHeight } = getFontMetrics();
-  const maxWidth = window.innerWidth * 0.8;
-  const maxHeight = window.innerHeight * 0.8;
+  const charWidth = FONT_SIZE;
+  const charHeight = FONT_SIZE;
+
+  const maxWidth = window.innerWidth;
+  const maxHeight = window.innerHeight;
 
   return {
     width: Math.floor(maxWidth / charWidth),
@@ -82,7 +73,6 @@ const convertToAscii = (
   height: number,
   asciiChars: string[],
 ): string => {
-  console.log(width);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
@@ -91,7 +81,11 @@ const convertToAscii = (
   canvas.height = height;
   ctx.drawImage(image, 0, 0, width, height);
 
-  const pixels = ctx.getImageData(0, 0, width, height).data;
+  const imgData = ctx.getImageData(0, 0, width, height);
+  const pixels = imgData.data;
+  console.log(pixels.length);
+  console.log(4 * width * height);
+
   let asciiStr = '';
 
   for (let i = 0; i < pixels.length; i += 4) {
@@ -120,7 +114,6 @@ export const processImage = async (
   setImageUrl: React.Dispatch<React.SetStateAction<string | null>>,
   setAsciiArt: React.Dispatch<React.SetStateAction<string | null>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setIsAsciiVisible: React.Dispatch<React.SetStateAction<boolean>>,
   asciiChars: string[],
 ): Promise<void> => {
   setIsLoading(true);
@@ -164,7 +157,6 @@ export const processImage = async (
 
         setAsciiArt(convertToAscii(croppedImage, width, height, asciiChars));
         setIsLoading(false);
-        setIsAsciiVisible(true);
       };
     };
     image.src = url;

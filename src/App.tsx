@@ -10,7 +10,6 @@ const App = () => {
   const [asciiArt, setAsciiArt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
-  const [isAsciiVisible, setIsAsciiVisible] = useState<boolean>(false);
 
   const asciiChars: string[] = [
     '@',
@@ -28,14 +27,7 @@ const App = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
-      processImage(
-        file,
-        setImageUrl,
-        setAsciiArt,
-        setIsLoading,
-        setIsAsciiVisible,
-        asciiChars,
-      );
+      processImage(file, setImageUrl, setAsciiArt, setIsLoading, asciiChars);
     }
   };
 
@@ -50,21 +42,19 @@ const App = () => {
         setImageUrl,
         setAsciiArt,
         setIsLoading,
-        setIsAsciiVisible,
         asciiChars,
       );
     }
   };
 
   const handleBackToInput = () => {
-    setIsAsciiVisible(false);
     setAsciiArt(null);
     setImageUrlInput('');
   };
 
   return (
     <div className="app-container">
-      {isAsciiVisible ? (
+      {asciiArt ? (
         <AsciiArt asciiArt={asciiArt} onBack={handleBackToInput} />
       ) : isLoading ? (
         <Loading />
