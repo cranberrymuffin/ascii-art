@@ -8,13 +8,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
   const [isAsciiVisible, setIsAsciiVisible] = useState<boolean>(false);
-  const [imageDimensions, setImageDimensions] = useState<{
-    width: number;
-    height: number;
-  }>({
-    width: 0,
-    height: 0,
-  });
 
   const asciiChars: string[] = [
     '@',
@@ -67,8 +60,6 @@ const App = () => {
     width: number,
     height: number,
   ): string => {
-    console.log(width);
-    console.log(height);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return '';
@@ -102,8 +93,15 @@ const App = () => {
       }
     }
 
-    return asciiStr.replace(/^(?:\s*\n)+/, '');
+    return trimEmptyLines(asciiStr);
   };
+
+  function trimEmptyLines(str: string) {
+    return str
+      .split('\n')
+      .filter(line => line.trim() !== '')
+      .join('\n');
+  }
 
   const processImage = async (imageSource: Blob | string) => {
     setIsLoading(true);
@@ -153,7 +151,6 @@ const App = () => {
         }
 
         // Step 4: Set the image dimensions and generate ASCII art
-        setImageDimensions({ width, height });
         const ascii = convertToAscii(image, width, height);
         setAsciiArt(ascii);
         setIsLoading(false);
