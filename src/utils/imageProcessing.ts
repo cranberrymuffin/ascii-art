@@ -1,30 +1,82 @@
 import { removeBackground } from '@imgly/background-removal';
 
-export const getFontMetrics = (): { charWidth: number; charHeight: number } => {
-  const fontSize = 4; // Font size in pixels (adjustable)
+const FONT_SIZE = 4; // Font size in pixels
 
+const getFontMetrics = (): { charWidth: number; charHeight: number } => {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d')!;
-  context.font = `${fontSize}px 'Courier New', monospace`;
+  context.font = `${FONT_SIZE}px 'Courier New', monospace`;
 
-  const charWidth = context.measureText('@').width; // 'M' is a good sample character to measure width
-  const charHeight = fontSize; // Typically, height is the same as the font size for monospace fonts
-
-  return { charWidth, charHeight };
+  return {
+    charWidth: context.measureText('@').width,
+    charHeight: FONT_SIZE,
+  };
 };
 
-export const calculateDimensions = (): { width: number; height: number } => {
+const calculateDimensions = (): { width: number; height: number } => {
   const { charWidth, charHeight } = getFontMetrics();
-  const maxWidth = window.innerWidth; // 80% of the viewport width
-  const maxHeight = window.innerHeight; // 80% of the viewport height
+  const maxWidth = window.innerWidth * 0.8;
+  const maxHeight = window.innerHeight * 0.8;
 
-  const cols = Math.floor(maxWidth / charWidth);
-  const rows = Math.floor(maxHeight / charHeight);
-
-  return { width: cols, height: rows };
+  return {
+    width: Math.floor(maxWidth / charWidth),
+    height: Math.floor(maxHeight / charHeight),
+  };
 };
 
-export const convertToAscii = (
+const cropImage = (image: HTMLImageElement): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  // Draw the image to get pixel data
+  canvas.width = image.width;
+  canvas.height = image.height;
+  ctx.drawImage(image, 0, 0);
+
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  let top = canvas.height,
+    bottom = 0,
+    left = canvas.width,
+    right = 0;
+
+  // Find the bounding box of non-transparent pixels
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const i = (y * canvas.width + x) * 4;
+      const alpha = pixels[i + 3]; // Alpha channel
+
+      if (alpha > 128) {
+        // If pixel is not fully transparent
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+      }
+    }
+  }
+
+  // Crop the image based on the bounding box
+  const croppedCanvas = document.createElement('canvas');
+  const croppedCtx = croppedCanvas.getContext('2d')!;
+  croppedCanvas.width = right - left + 1;
+  croppedCanvas.height = bottom - top + 1;
+  croppedCtx.drawImage(
+    canvas,
+    left,
+    top,
+    right - left + 1,
+    bottom - top + 1,
+    0,
+    0,
+    right - left + 1,
+    bottom - top + 1,
+  );
+
+  return croppedCanvas;
+};
+
+const convertToAscii = (
   image: HTMLImageElement,
   width: number,
   height: number,
@@ -38,36 +90,26 @@ export const convertToAscii = (
   canvas.height = height;
   ctx.drawImage(image, 0, 0, width, height);
 
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const pixels = imageData.data;
+  const pixels = ctx.getImageData(0, 0, width, height).data;
   let asciiStr = '';
 
   for (let i = 0; i < pixels.length; i += 4) {
-    const r = pixels[i];
-    const g = pixels[i + 1];
-    const b = pixels[i + 2];
-    const a = pixels[i + 3];
+    const [r, g, b, a] = pixels.slice(i, i + 4);
 
-    if (a < 128) {
-      asciiStr += ' ';
-    } else {
-      const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      const charIndex = Math.floor(
-        (brightness / 255) * (asciiChars.length - 1),
-      );
-      asciiStr += asciiChars[charIndex];
-    }
+    asciiStr +=
+      a < 128
+        ? ' '
+        : asciiChars[
+            Math.floor(
+              ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255) *
+                (asciiChars.length - 1),
+            )
+          ];
 
-    if ((i / 4 + 1) % width === 0) {
-      asciiStr += '\n';
-    }
+    if ((i / 4 + 1) % width === 0) asciiStr += '\n';
   }
 
-  return trimEmptyLines(asciiStr);
-};
-
-const trimEmptyLines = (str: string) => {
-  return str
+  return asciiStr
     .split('\n')
     .filter(line => line.trim() !== '')
     .join('\n');
@@ -80,31 +122,16 @@ export const processImage = async (
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setIsAsciiVisible: React.Dispatch<React.SetStateAction<boolean>>,
   asciiChars: string[],
-) => {
+): Promise<void> => {
   setIsLoading(true);
 
   try {
-    let imageUrl;
-    let imageBlob: Blob | null = null;
-
-    if (typeof imageSource === 'string') {
-      const response = await fetch(imageSource);
-      if (!response.ok) {
-        throw new Error('Failed to fetch image');
-      }
-      imageBlob = await response.blob();
-      imageUrl = URL.createObjectURL(imageBlob);
-    } else {
-      imageUrl = URL.createObjectURL(imageSource);
-      imageBlob = imageSource;
-    }
-
-    const removedBlob = await removeBackground(imageBlob);
-    if (!removedBlob) {
-      console.error('No background removed, returned blob is empty.');
-      setIsLoading(false);
-      return;
-    }
+    const removedBlob = await removeBackground(
+      imageSource instanceof Blob
+        ? imageSource
+        : await (await fetch(imageSource)).blob(),
+    );
+    if (!removedBlob) return setIsLoading(false);
 
     const url = URL.createObjectURL(removedBlob);
     setImageUrl(url);
@@ -112,21 +139,25 @@ export const processImage = async (
     const image = new Image();
     image.onload = () => {
       const { width: maxWidth, height: maxHeight } = calculateDimensions();
-
       const aspectRatio = image.naturalWidth / image.naturalHeight;
 
       let width = maxWidth;
       let height = Math.floor(width / aspectRatio);
-
       if (height > maxHeight) {
         height = maxHeight;
         width = Math.floor(height * aspectRatio);
       }
 
-      const ascii = convertToAscii(image, width, height, asciiChars);
-      setAsciiArt(ascii);
-      setIsLoading(false);
-      setIsAsciiVisible(true);
+      // Crop the image before converting to ASCII
+      const croppedCanvas = cropImage(image);
+      const croppedImage = new Image();
+      croppedImage.src = croppedCanvas.toDataURL();
+
+      croppedImage.onload = () => {
+        setAsciiArt(convertToAscii(croppedImage, width, height, asciiChars));
+        setIsLoading(false);
+        setIsAsciiVisible(true);
+      };
     };
     image.src = url;
   } catch (error) {
