@@ -91,7 +91,7 @@ const App = () => {
     charWidth: number;
     charHeight: number;
   } {
-    const fontSize = 3; // Font size in pixels (adjustable)
+    const fontSize = 6; // Font size in pixels (adjustable)
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
