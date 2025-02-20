@@ -43,7 +43,6 @@ body {
   border: none;
   border-radius: 15px;
   cursor: pointer;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease;
 }
 
@@ -58,7 +57,6 @@ body {
   background-color: #fff0f6;
   padding: 20px;
   border-radius: 15px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Group input field and button next to each other */
@@ -90,7 +88,6 @@ body {
   border: none;
   border-radius: 15px;
   cursor: pointer;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s ease;
 }
 
@@ -124,6 +121,6 @@ body {
 }
 
 pre {
-  line-height: 5px;
+  line-height: 4px;
   font-size: 6px;
 }

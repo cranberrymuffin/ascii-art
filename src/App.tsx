@@ -17,81 +17,23 @@ const App = () => {
   });
 
   const asciiChars: string[] = [
-    '$',
     '@',
-    'B',
     '%',
-    '8',
-    '&',
-    'W',
-    'M',
     '#',
     '*',
-    'o',
-    'a',
-    'h',
-    'k',
-    'b',
-    'd',
-    'p',
-    'q',
-    'w',
-    'm',
-    'Z',
-    'O',
-    '0',
-    'Q',
-    'L',
-    'C',
-    'J',
-    'U',
-    'Y',
-    'X',
-    'z',
-    'c',
-    'v',
-    'u',
-    'n',
-    'x',
-    'r',
-    'j',
-    'f',
-    't',
-    '/',
-    '\\',
-    '|',
-    '(',
-    ')',
-    '1',
-    '{',
-    '}',
-    '[',
-    ']',
-    '?',
-    '-',
-    '_',
     '+',
-    '~',
-    '<',
-    '>',
-    'i',
-    '!',
-    'l',
-    'I',
-    ';',
+    '=',
+    '-',
     ':',
-    ',',
-    '"',
-    '^',
-    '`',
     '.',
+    ' ',
   ];
 
   function getFontMetrics(): {
     charWidth: number;
     charHeight: number;
   } {
-    const fontSize = 6; // Font size in pixels (adjustable)
+    const fontSize = 4; // Font size in pixels (adjustable)
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
@@ -109,8 +51,8 @@ const App = () => {
     image: HTMLImageElement,
   ): { width: number; height: number } => {
     const { charWidth, charHeight } = getFontMetrics();
-    const maxWidth = window.innerWidth * 0.8; // 80% of the viewport width
-    const maxHeight = window.innerHeight * 0.8; // 80% of the viewport height
+    const maxWidth = window.innerWidth; // 80% of the viewport width
+    const maxHeight = window.innerHeight; // 80% of the viewport height
 
     // Calculate the number of columns (width) and rows (height) based on font size
     const cols = Math.floor(maxWidth / charWidth);
