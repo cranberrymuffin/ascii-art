@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useEffect } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { removeBackground } from '@imgly/background-removal';
 import './style.css'; // Import the styles
 
@@ -22,35 +22,28 @@ const App = () => {
     ' ',
   ];
 
-  function getFontMetrics(): {
-    charWidth: number;
-    charHeight: number;
-  } {
+  function getFontMetrics(): { charWidth: number; charHeight: number } {
     const fontSize = 4; // Font size in pixels (adjustable)
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
     context.font = `${fontSize}px 'Courier New', monospace`;
 
-    const charWidth = context.measureText('@').width; // 'M' is a good sample character to measure width
-    const charHeight = fontSize; // Typically, height is the same as the font size for monospace fonts
+    const charWidth = context.measureText('@').width;
+    const charHeight = fontSize;
 
     return { charWidth, charHeight };
   }
 
-  // Set the font size for ASCII characters
-  // Function to calculate width and height for image resizing based on ASCII grid
   const calculateDimensions = (
     image: HTMLImageElement,
   ): { width: number; height: number } => {
     const { charWidth, charHeight } = getFontMetrics();
-    const maxWidth = window.innerWidth; // 80% of the viewport width
-    const maxHeight = window.innerHeight; // 80% of the viewport height
+    const maxWidth = window.innerWidth;
+    const maxHeight = window.innerHeight;
 
-    // Calculate the number of columns (width) and rows (height) based on font size
     const cols = Math.floor(maxWidth / charWidth);
     const rows = Math.floor(maxHeight / charHeight);
-    console.log(rows, cols);
 
     return { width: cols, height: rows };
   };
@@ -150,11 +143,59 @@ const App = () => {
           width = Math.floor(height * aspectRatio);
         }
 
-        // Step 4: Set the image dimensions and generate ASCII art
-        const ascii = convertToAscii(image, width, height);
-        setAsciiArt(ascii);
-        setIsLoading(false);
-        setIsAsciiVisible(true);
+        // Step 4: Create canvas to crop whitespace
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        ctx.drawImage(image, 0, 0);
+
+        // Find bounding box of non-transparent pixels
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        let left = canvas.width,
+          top = canvas.height,
+          right = 0,
+          bottom = 0;
+
+        // Loop through pixels to find the bounding box
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const i = (y * canvas.width + x) * 4;
+            const alpha = data[i + 3];
+
+            if (alpha > 0) {
+              left = Math.min(left, x);
+              top = Math.min(top, y);
+              right = Math.max(right, x);
+              bottom = Math.max(bottom, y);
+            }
+          }
+        }
+
+        // Crop the image based on bounding box
+        const croppedImageData = ctx.getImageData(
+          left,
+          top,
+          right - left,
+          bottom - top,
+        );
+        canvas.width = right - left;
+        canvas.height = bottom - top;
+        ctx.putImageData(croppedImageData, 0, 0);
+
+        // Step 5: Generate ASCII art from cropped image
+        const croppedImage = new Image();
+        croppedImage.onload = () => {
+          const ascii = convertToAscii(croppedImage, width, height);
+          setAsciiArt(ascii);
+          setIsLoading(false);
+          setIsAsciiVisible(true);
+        };
+        croppedImage.src = canvas.toDataURL(); // Set the cropped image as source for ASCII conversion
       };
       image.src = url;
     } catch (error) {
