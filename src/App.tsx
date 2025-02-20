@@ -6,7 +6,6 @@ import { processImage } from './utils/imageProcessing';
 import './style.css';
 
 const App = () => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [asciiArt, setAsciiArt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
@@ -27,7 +26,7 @@ const App = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     if (file) {
-      processImage(file, setImageUrl, setAsciiArt, setIsLoading, asciiChars);
+      processImage(file, setAsciiArt, setIsLoading, asciiChars);
     }
   };
 
@@ -37,13 +36,7 @@ const App = () => {
 
   const handleUrlSubmit = () => {
     if (imageUrlInput) {
-      processImage(
-        imageUrlInput,
-        setImageUrl,
-        setAsciiArt,
-        setIsLoading,
-        asciiChars,
-      );
+      processImage(imageUrlInput, setAsciiArt, setIsLoading, asciiChars);
     }
   };
 

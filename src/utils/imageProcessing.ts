@@ -111,7 +111,6 @@ const convertToAscii = (
 
 export const processImage = async (
   imageSource: Blob | string,
-  setImageUrl: React.Dispatch<React.SetStateAction<string | null>>,
   setAsciiArt: React.Dispatch<React.SetStateAction<string | null>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   asciiChars: string[],
@@ -127,7 +126,6 @@ export const processImage = async (
     if (!removedBlob) return setIsLoading(false);
 
     const url = URL.createObjectURL(removedBlob);
-    setImageUrl(url);
 
     const image = new Image();
     image.onload = () => {
