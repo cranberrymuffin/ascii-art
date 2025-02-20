@@ -82,6 +82,7 @@ const convertToAscii = (
   height: number,
   asciiChars: string[],
 ): string => {
+  console.log(width);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
@@ -108,7 +109,6 @@ const convertToAscii = (
 
     if ((i / 4 + 1) % width === 0) asciiStr += '\n';
   }
-
   return asciiStr
     .split('\n')
     .filter(line => line.trim() !== '')
@@ -139,14 +139,6 @@ export const processImage = async (
     const image = new Image();
     image.onload = () => {
       const { width: maxWidth, height: maxHeight } = calculateDimensions();
-      const aspectRatio = image.naturalWidth / image.naturalHeight;
-
-      let width = maxWidth;
-      let height = Math.floor(width / aspectRatio);
-      if (height > maxHeight) {
-        height = maxHeight;
-        width = Math.floor(height * aspectRatio);
-      }
 
       // Crop the image before converting to ASCII
       const croppedCanvas = cropImage(image);
@@ -154,6 +146,22 @@ export const processImage = async (
       croppedImage.src = croppedCanvas.toDataURL();
 
       croppedImage.onload = () => {
+        const aspectRatio =
+          croppedImage.naturalWidth / croppedImage.naturalHeight;
+
+        let width = croppedImage.naturalWidth;
+        let height = croppedImage.naturalHeight;
+
+        // Ensure the image fits within the maxWidth and maxHeight
+        if (width > maxWidth) {
+          width = maxWidth;
+          height = Math.floor(width / aspectRatio);
+        }
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = Math.floor(height * aspectRatio);
+        }
+
         setAsciiArt(convertToAscii(croppedImage, width, height, asciiChars));
         setIsLoading(false);
         setIsAsciiVisible(true);
