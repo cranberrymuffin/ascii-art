@@ -9,6 +9,9 @@ const App = () => {
   const [asciiArt, setAsciiArt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [enableBackgroundRemoval, setEnableBackgroundRemoval] =
+    useState<boolean>(false);
 
   const asciiChars: string[] = [
     '@',
@@ -25,24 +28,37 @@ const App = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
-    if (file) {
-      processImage(file, setAsciiArt, setIsLoading, asciiChars);
-    }
+    setSelectedFile(file);
   };
 
   const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrlInput(event.target.value);
   };
 
-  const handleUrlSubmit = () => {
-    if (imageUrlInput) {
-      processImage(imageUrlInput, setAsciiArt, setIsLoading, asciiChars);
+  const handleSubmit = () => {
+    if (selectedFile) {
+      processImage(
+        selectedFile,
+        setAsciiArt,
+        setIsLoading,
+        asciiChars,
+        !enableBackgroundRemoval,
+      );
+    } else if (imageUrlInput) {
+      processImage(
+        imageUrlInput,
+        setAsciiArt,
+        setIsLoading,
+        asciiChars,
+        !enableBackgroundRemoval,
+      );
     }
   };
 
   const handleBackToInput = () => {
     setAsciiArt(null);
     setImageUrlInput('');
+    setSelectedFile(null);
   };
 
   return (
@@ -55,8 +71,13 @@ const App = () => {
         <ImageInput
           imageUrlInput={imageUrlInput}
           onUrlChange={handleUrlChange}
-          onUrlSubmit={handleUrlSubmit}
           onFileChange={handleFileChange}
+          enableBackgroundRemoval={enableBackgroundRemoval}
+          onEnableBackgroundRemovalChange={e =>
+            setEnableBackgroundRemoval(e.target.checked)
+          }
+          selectedFile={selectedFile}
+          onSubmit={handleSubmit}
         />
       )}
     </div>

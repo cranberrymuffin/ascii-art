@@ -112,18 +112,28 @@ export const processImage = async (
   setAsciiArt: React.Dispatch<React.SetStateAction<string | null>>,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
   asciiChars: string[],
+  skipBackgroundRemoval: boolean = false,
 ): Promise<void> => {
   setIsLoading(true);
 
   try {
-    const removedBlob = await removeBackground(
-      imageSource instanceof Blob
-        ? imageSource
-        : await (await fetch(imageSource)).blob(),
-    );
-    if (!removedBlob) return setIsLoading(false);
+    let imageBlob: Blob;
+    if (skipBackgroundRemoval) {
+      imageBlob =
+        imageSource instanceof Blob
+          ? imageSource
+          : await (await fetch(imageSource)).blob();
+    } else {
+      const removedBlob = await removeBackground(
+        imageSource instanceof Blob
+          ? imageSource
+          : await (await fetch(imageSource)).blob(),
+      );
+      if (!removedBlob) return setIsLoading(false);
+      imageBlob = removedBlob;
+    }
 
-    const url = URL.createObjectURL(removedBlob);
+    const url = URL.createObjectURL(imageBlob);
 
     const image = new Image();
     image.onload = () => {
